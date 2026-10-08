@@ -1,0 +1,10 @@
+{
+  "name": "Glicose+",
+  "short_name": "Glicose+",
+  "description": "Controle de glicose, medicamentos, pressão e peso",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#16a34a",
+  "orientation": "portrait"
+}

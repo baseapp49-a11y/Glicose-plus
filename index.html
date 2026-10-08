@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#16a34a">
+<link rel="manifest" href="manifest.json">
+<title>Glicose+</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:#16a34a;color:white;padding:18px;text-align:center}
+header h1{margin:0}
+main{padding:16px;padding-bottom:90px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #0001}
+input,select,button{width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #ccc;font-size:16px}
+button{background:#16a34a;color:white;border:0;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu{padding:18px 10px}
+.history{border-left:4px solid #16a34a}
+nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;box-shadow:0 -2px 8px #0002}
+nav button{border-radius:0;margin:0;background:white;color:#333}
+nav button.active{background:#16a34a;color:white}
+.hidden{display:none}
+.small{font-size:13px;color:#666}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Glicose+</h1>
+<div>Controle de saúde</div>
+</header>
+
+<main>
+
+<section id="inicio">
+
+<div class="card">
+<h3>Paciente</h3>
+<input id="paciente" placeholder="Nome do paciente">
+<button onclick="salvarPaciente()">Salvar paciente</button>
+</div>
+
+<div class="grid">
+
+<div class="card menu">
+<h3>🩸 Glicose</h3>
+<button onclick="mostrar('glicoseForm')">Registrar</button>
+</div>
+
+<div class="card menu">
+<h3>💊 Remédio</h3>
+<button onclick="mostrar('remedioForm')">Registrar</button>
+</div>
+
+<div class="card menu">
+<h3>❤️ Pressão</h3>
+<button onclick="mostrar('pressaoForm')">Registrar</button>
+</div>
+
+<div class="card menu">
+<h3>⚖️ Peso</h3>
+<button onclick="mostrar('pesoForm')">Registrar</button>
+</div>
+
+</div>
+
+<div id="glicoseForm" class="card hidden">
+<h3>Registrar glicose</h3>
+
+<select id="momento">
+<option>Jejum</option>
+<option>Após café</option>
+<option>Após almoço</option>
+<option>Após jantar</option>
+</select>
+
+<input id="glicose" type="number" placeholder="Glicose mg/dL">
+
+<button onclick="salvarGlicose()">Salvar</button>
+</div>
+
+<div id="remedioForm" class="card hidden">
+<h3>Registrar medicamento</h3>
+
+<input id="remedio" placeholder="Nome do medicamento">
+<input id="dose" placeholder="Dose">
+<input id="horario" type="time">
+
+<button onclick="salvarRemedio()">Salvar</button>
+</div>
+
+<div id="pressaoForm" class="card hidden">
+<h3>Registrar pressão</h3>
+
+<input id="sistolica" type="number" placeholder="Sistólica">
+<input id="diastolica" type="number" placeholder="Diastólica">
+<input id="bpm" type="number" placeholder="Batimentos por minuto">
+
+<button onclick="salvarPressao()">Salvar</button>
+</div>
+
+<div id="pesoForm" class="card hidden">
+<h3>Registrar peso</h3>
+
+<input id="peso" type="number" step="0.1" placeholder="Peso em kg">
+
+<button onclick="salvarPeso()">Salvar</button>
+</div>
+
+<div class="card">
+<button onclick="compartilharWhatsApp()">📱 Compartilhar no WhatsApp</button>
+</div>
+
+</section>
+
+<section id="historico" class="hidden">
+<h2>Histórico</h2>
+<div id="lista"></div>
+</section>
+
+</main>
+
+<nav>
+<button id="btnInicio" class="active" onclick="pagina('inicio')">Início</button>
+<button id="btnHistorico" onclick="pagina('historico')">Histórico</button>
+</nav>
+
+<script>
+
+let registros=JSON.parse(localStorage.getItem("glicosePlusRegistros")||"[]");
+
+document.getElementById("paciente").value=
+localStorage.getItem("glicosePlusPaciente")||"";
+
+function agora(){
+const d=new Date();
+return d.toLocaleDateString("pt-BR")+" "+
+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+
+function salvarPaciente(){
+const nome=document.getElementById("paciente").value.trim();
+localStorage.setItem("glicosePlusPaciente",nome);
+alert("Paciente salvo!");
+}
+
+function mostrar(id){
+document.getElementById(id).classList.toggle("hidden");
+}
+
+function salvar(tipo,dados){
+registros.unshift({
+tipo:tipo,
+dados:dados,
+data:agora()
+});
+localStorage.setItem("glicosePlusRegistros",JSON.stringify(registros));
+alert("Registro salvo!");
+atualizar();
+}
+
+function salvarGlicose(){
+const valor=document.getElementById("glicose").value;
+if(!valor)return alert("Informe a glicose.");
+salvar("Glicose",{
+momento:document.getElementById("momento").value,
+valor:valor+" mg/dL"
+});
+document.getElementById("glicose").value="";
+}
+
+function salvarRemedio(){
+const nome=document.getElementById("remedio").value;
+if(!nome)return alert("Informe o medicamento.");
+salvar("Remédio",{
+nome:nome,
+dose:document.getElementById("dose").value,
+horario:document.getElementById("horario").value
+});
+}
+
+function salvarPressao(){
+const s=document.getElementById("sistolica").value;
+const d=document.getElementById("diastolica").value;
+if(!s||!d)return alert("Informe a pressão.");
+salvar("Pressão",{
+pressao:s+"/"+d,
+bpm:document.getElementById("bpm").value
+});
+}
+
+function salvarPeso(){
+const p=document.getElementById("peso").value;
+if(!p)return alert("Informe o peso.");
+salvar("Peso",{peso:p+" kg"});
+}
+
+function atualizar(){
+const lista=document.getElementById("lista");
+lista.innerHTML="";
+
+if(registros.length===0){
+lista.innerHTML='<div class="card">Nenhum registro ainda.</div>';
+return;
+}
+
+registros.forEach(r=>{
+let texto="";
+
+if(r.tipo==="Glicose")
+texto=r.dados.momento+" — "+r.dados.valor;
+
+if(r.tipo==="Remédio")
+texto=r.dados.nome+" — "+r.dados.dose+" — "+r.dados.horario;
+
+if(r.tipo==="Pressão")
+texto=r.dados.pressao+" — BPM "+r.dados.bpm;
+
+if(r.tipo==="Peso")
+texto=r.dados.peso;
+
+lista.innerHTML+=`
+<div class="card history">
+<strong>${r.tipo}</strong>
+<br>${texto}
+<div class="small">${r.data}</div>
+</div>`;
+});
+}
+
+function pagina(p){
+document.getElementById("inicio").classList.toggle("hidden",p!=="inicio");
+document.getElementById("historico").classList.toggle("hidden",p!=="historico");
+
+document.getElementById("btnInicio").classList.toggle("active",p==="inicio");
+document.getElementById("btnHistorico").classList.toggle("active",p==="historico");
+
+if(p==="historico")atualizar();
+}
+
+function compartilharWhatsApp(){
+const paciente=localStorage.getItem("glicosePlusPaciente")||"Não informado";
+
+let texto="Glicose+%0A";
+texto+="Paciente: "+paciente+"%0A%0A";
+
+registros.slice(0,20).forEach(r=>{
+texto+=r.tipo+": ";
+
+if(r.tipo==="Glicose")
+texto+=r.dados.momento+" - "+r.dados.valor;
+
+if(r.tipo==="Remédio")
+texto+=r.dados.nome+" - "+r.dados.dose+" - "+r.dados.horario;
+
+if(r.tipo==="Pressão")
+texto+=r.dados.pressao+" - BPM "+r.dados.bpm;
+
+if(r.tipo==="Peso")
+texto+=r.dados.peso;
+
+texto+=" - "+r.data+"%0A";
+});
+
+window.open("https://wa.me/?text="+texto,"_blank");
+}
+
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>{
+navigator.serviceWorker.register("sw.js");
+});
+}
+
+atualizar();
+
+</script>
+
+</body>
+</html>
